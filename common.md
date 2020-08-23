@@ -43,6 +43,8 @@
     + [using an ssh agent](#using-an-ssh-agent)
     + [hijacking ssh agents](#hijacking-ssh-agents)
     + [agent forwarding](#agent-forwarding)
+- [searching the filesystem](#searching-filesystem)
+  * [search text in files](#search-text-in-files)
 
 ---
 
@@ -598,3 +600,21 @@ _avoid using this feature with any keys you care about_
 if you enable SSH agent forwarding then you’ll be able to carry on using the SSH agent on your SSH client during your session on the SSH server.
 
 this is potentially insecure because so will anyone else who is root on the SSH server you’re connected to.
+
+---
+
+# searching filesystem
+
+## search text in files
+
+```
+grep -Ril "text-to-find-here" / 2>/dev/null
+```
+
+where:
+```
+`i` - ignore case
+`R` - recursive
+`l` - show the file name, not the result itself
+`/` - starting at the root of your machine
+```
