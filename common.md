@@ -112,7 +112,6 @@ perl -e 'exec "/bin/sh";'
 
 ----
 ## making them fully interactive
-----
 
 when getting a reverse shell through `netcat`, by default it's non-interactive - meaning it's a pain. once you run any of the above scripts to get a partially interactive shell, you can do a few more things to optimize:
 
