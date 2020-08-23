@@ -89,7 +89,7 @@ echo os.system('/bin/bash')
 perl -e 'exec "/bin/sh";'
 ```
 
-#### **witin text editors**:
+#### **within text editors**:
 
 ##### _vi_:
 ```
